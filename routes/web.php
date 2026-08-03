@@ -8,9 +8,10 @@ use App\Http\Controllers\LibroController;
 use App\Http\Controllers\ExcelViewController;
  
 
-Route::get('/react', function () {
-    return view('react.index');
-});
+Route::get('/{any}', function () {
+    return view('app');
+})->where('any', '.*');
+
 Route::get('/', function () {
     return view('index');
 })->name('home');
