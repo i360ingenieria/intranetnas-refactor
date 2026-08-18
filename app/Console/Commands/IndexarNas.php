@@ -10,7 +10,7 @@ use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
 use FilesystemIterator;
 
-class IndexarIntranet extends Command
+class IndexarIntranetNas  extends Command
 {
     protected $signature = 'app:indexar-intranet {path=/mnt/intranet}';
     protected $description = 'Indexa carpetas y archivos desde NAS';

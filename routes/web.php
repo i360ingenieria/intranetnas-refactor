@@ -6,15 +6,13 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\FichatecfController;
 use App\Http\Controllers\LibroController;
 use App\Http\Controllers\ExcelViewController;
+ use App\Http\Controllers\Api\PlatformController;
  
 
-Route::get('/{any}', function () {
-    return view('app');
-})->where('any', '.*');
 
-Route::get('/', function () {
-    return view('index');
-})->name('home');
+// Route::get('/', function () {
+//     return view('index');
+// })->name('home');
 
 Route::get('/libro', [LibroController::class, 'index'])->name('libro');
 
@@ -66,9 +64,9 @@ Route::get('/documentos', function () {
     return view('documentos');
 })->name('documentos');
 
-Route::get('/fichatecnica', function () {
-    return view('fichatecnica');
-})->name('fichatecnica');
+// Route::get('/fichatecnica', function () {
+//     return view('fichatecnica');
+// })->name('fichatecnica');
 
 // Rutas para el foro
 Route::get('/post', [PostController::class, 'index'])->name('post');
@@ -85,7 +83,7 @@ Route::get('/archivos/descargar/{id}', [ArchivoController::class, 'descargar']);
 Route::get('/archivos/ver/{id}', [ArchivoController::class, 'ver']) ->name('archivos.ver');
 
 // Rutas para Ficha Técnica mercadeo
-Route::get('/fichatecnica', [FichatecfController::class, 'index'])->name('fichatecnica');
+// Route::get('/fichatecnica', [FichatecfController::class, 'index'])->name('fichatecnica');
 Route::get('/fichatecnica/buscar', [FichatecfController::class, 'buscar']);
 Route::get('/fichatecnica/descargar/{id}', [FichatecfController::class, 'descargar'])->name('fichatecnica.descargar');  
 Route::get('/fichatecnica/ver/{id}', [FichatecfController::class, 'ver'])->name('fichatecnica.ver');
@@ -95,8 +93,8 @@ Route::get('/fichatecnica/ver/{id}', [FichatecfController::class, 'ver'])->name(
 //Route::get('/fichatecnica/excel/ver/{id}', [ExcelViewController::class, 'ver']);
 
 // Si quieres también soportar la ruta sin /fichatecnica
-Route::get('/excel/ver/{ruta}', [ExcelViewController::class, 'ver'])
-    ->where('ruta', '.*'); // Esto permite cualquier carácter en la ruta
+Route::get('/excel/ver', [ExcelViewController::class, 'ver'])
+    ->name('excel.ver');
 
 // Ruta para probar la instalación de PhpSpreadsheet
 Route::get('/test-phpspreadsheet', function() {
@@ -126,7 +124,11 @@ Route::get('/test-phpspreadsheet', function() {
         ]);
     }
 });
-
+Route::get('/platforms',[PlatformController::class,'index']);
 // Route::post('/guardar-respuesta/{logId}', [PostController::class, 'guardarRespuesta'])
 //     ->name('guardar-respuesta');
 
+
+Route::get('/{any}', function () {
+    return view('app');
+})->where('any', '.*');

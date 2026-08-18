@@ -123,9 +123,9 @@ public function buscar(Request $request)
     ]);
 }
 
-
-    public function descargar($id)
+ public function descargar($id)
     {
+        dd('descargar archivo id: ' . $id);
         $archivo = Archivo::where('id', $id)
             ->where('tipo', 'archivo')
             ->firstOrFail();
@@ -163,8 +163,7 @@ public function buscar(Request $request)
     public function ver($id)
     {
         $archivo = Archivo::findOrFail($id);
-
-        // 🔐 Solo PDFs
+         // 🔐 Solo PDFs
         if (strtolower($archivo->extension) !== 'pdf') {
             abort(403, 'No es un PDF');
         }

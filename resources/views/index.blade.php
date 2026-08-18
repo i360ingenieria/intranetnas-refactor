@@ -297,7 +297,7 @@
                                     </h5>
                                     <p class="card-text text-dark small" style="line-height: 1.4;">
                                         <p class="mb-4 text-muted" style="font-size:17px;">
-                                          Directorio actualizado 
+                                          Descarga y Visualización en funcionamiento
                                         </p>
                                     </p>
                                 </div>
