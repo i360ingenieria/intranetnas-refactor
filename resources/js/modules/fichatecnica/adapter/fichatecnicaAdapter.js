@@ -1,13 +1,36 @@
-export function toChonkyFiles(items) {
-    return items.map(item => ({
-        id: String(item.id),
-        name: item.nombre,
-        isDir: item.tipo === "carpeta",
+export function toChonkyFiles(items = []) {
 
-        extraData: {
-            ruta: item.ruta,
-            tipo: item.tipo,
-            extension: item.extension,
-        },
-    }));
+    return items.map((item) => {
+
+        const isDir =
+            item.tipo === "carpeta";
+
+
+        return {
+
+            id: String(item.id),
+
+            name: item.nombre,
+
+            isDir: isDir,
+
+            extraData: {
+
+                ruta: item.ruta,
+
+                ruta_relativa:
+                    item.ruta_relativa,
+
+                tipo:
+                    item.tipo,
+
+                extension:
+                    item.extension || null,
+
+            },
+
+        };
+
+    });
+
 }

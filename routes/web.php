@@ -91,7 +91,8 @@ Route::get('/fichatecnica/ver/{id}', [FichatecfController::class, 'ver'])->name(
 // Ruta para ver Excel desde ruta NAS de mercadeo
 // ✅ Ruta para ver Excel - AGREGAR ESTA
 //Route::get('/fichatecnica/excel/ver/{id}', [ExcelViewController::class, 'ver']);
-
+// Route::get('/excel/ver/{id}', [ExcelViewController::class, 'ver'])
+//     ->name('excel.ver');
 // Si quieres también soportar la ruta sin /fichatecnica
 Route::get('/excel/ver', [ExcelViewController::class, 'ver'])
     ->name('excel.ver');

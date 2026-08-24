@@ -1,13 +1,113 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import {
     FullFileBrowser,
-    ChonkyActions
+    ChonkyActions,
 } from "chonky";
 
 import { getFichaTecnica } from "../services/fichatecnicaService";
 import { toChonkyFiles } from "../adapter/fichatecnicaAdapter";
 import { useFichaTecnicaStore } from "../store/fichatecnicaStore";
+
+
+// =====================================================
+// RAÍZ DEL NAS DE FICHA TÉCNICA
+// =====================================================
+
+const ROOT_PATH = "/mnt/nas_pcmercadeo/";
+
+
+// =====================================================
+// CONSTRUIR FOLDER CHAIN
+// =====================================================
+
+function buildFolderChain(currentPath) {
+
+    let path = currentPath || ROOT_PATH;
+
+    // Normalizar raíz
+    if (
+        path !== ROOT_PATH &&
+        path !== ROOT_PATH.replace(/\/$/, "")
+    ) {
+        if (!path.startsWith(ROOT_PATH)) {
+            path = ROOT_PATH;
+        }
+    }
+
+    // Quitar slash final para trabajar
+    const normalizedRoot = ROOT_PATH.replace(/\/$/, "");
+
+    const normalizedPath =
+        path.replace(/\/$/, "") || normalizedRoot;
+
+    // Obtener ruta relativa
+    let relativePath = "";
+
+    if (normalizedPath !== normalizedRoot) {
+
+        relativePath = normalizedPath
+            .replace(normalizedRoot, "")
+            .replace(/^\/+/, "");
+
+    }
+
+    const parts = relativePath
+        ? relativePath.split("/").filter(Boolean)
+        : [];
+
+
+    // =================================================
+    // ROOT
+    // =================================================
+
+    const chain = [
+        {
+            id: "ficha-root",
+            name: "Ficha Técnica",
+            isDir: true,
+
+            extraData: {
+                ruta: ROOT_PATH,
+                tipo: "carpeta",
+            },
+        },
+    ];
+
+
+    // =================================================
+    // CARPETAS
+    // =================================================
+
+    let accumulatedPath = normalizedRoot;
+
+    parts.forEach((part, index) => {
+
+        accumulatedPath += "/" + part;
+
+        chain.push({
+            id: `ficha-folder-${index}-${accumulatedPath}`,
+
+            name: part,
+
+            isDir: true,
+
+            extraData: {
+                ruta: accumulatedPath,
+                tipo: "carpeta",
+            },
+        });
+
+    });
+
+
+    return chain;
+}
+
+
+// =====================================================
+// COMPONENTE
+// =====================================================
 
 export default function FichaTecnica() {
 
@@ -15,102 +115,228 @@ export default function FichaTecnica() {
         basePath,
         files,
         setFiles,
-        setBasePath
+        setBasePath,
     } = useFichaTecnicaStore();
 
 
-    // =====================================================
-    // CARGAR ARCHIVOS
-    // =====================================================
+    // =================================================
+    // RUTA ACTUAL
+    // =================================================
+
+    const currentPath =
+        basePath || ROOT_PATH;
+
+
+    // =================================================
+    // CARGAR CONTENIDO
+    // =================================================
 
     useEffect(() => {
 
-        loadFiles();
-
-    }, [basePath]);
+        let cancelled = false;
 
 
-    async function loadFiles() {
+        async function loadFiles() {
 
-        try {
+            try {
 
-            const data = await getFichaTecnica(basePath);
+                console.log(
+                    "================================="
+                );
 
-            console.log("FICHA API:", data);
+                console.log(
+                    "FICHA TECNICA - CARGANDO"
+                );
 
-            const chonkyFiles = toChonkyFiles(data);
+                console.log(
+                    "RUTA:",
+                    currentPath
+                );
 
-            console.log("FICHA CHONKY:", chonkyFiles);
 
-            setFiles(chonkyFiles);
+                const data =
+                    await getFichaTecnica(currentPath);
 
-        } catch (error) {
 
-            console.error(
-                "ERROR FICHA TECNICA:",
-                error
-            );
+                console.log(
+                    "FICHA API:",
+                    data
+                );
+
+
+                const chonkyFiles =
+                    toChonkyFiles(data);
+
+
+                console.log(
+                    "FICHA CHONKY:",
+                    chonkyFiles
+                );
+
+
+                if (!cancelled) {
+
+                    setFiles(
+                        chonkyFiles
+                    );
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "ERROR FICHA TECNICA:",
+                    error
+                );
+
+
+                if (!cancelled) {
+
+                    setFiles([]);
+
+                }
+
+            }
 
         }
+
+
+        loadFiles();
+
+
+        return () => {
+
+            cancelled = true;
+
+        };
+
+    }, [
+        currentPath,
+        setFiles,
+    ]);
+
+
+    // =================================================
+    // FOLDER CHAIN
+    // =================================================
+
+    const folderChain = useMemo(() => {
+
+        return buildFolderChain(
+            currentPath
+        );
+
+    }, [
+        currentPath,
+    ]);
+
+
+    // =================================================
+    // IR A CARPETA
+    // =================================================
+
+    function openFolder(file) {
+
+        const ruta =
+            file?.extraData?.ruta;
+
+
+        if (!ruta) {
+
+            console.error(
+                "CARPETA SIN RUTA:",
+                file
+            );
+
+            return;
+
+        }
+
+
+        console.log(
+            "ENTRANDO A CARPETA:",
+            ruta
+        );
+
+
+        setBasePath(
+            ruta
+        );
 
     }
 
 
-    // =====================================================
-    // ACCIONES CHONKY
-    // =====================================================
+    // =================================================
+    // SUBIR UN NIVEL
+    // =================================================
 
-    function handleAction(data) {
+    function goUp() {
+
+        const root =
+            ROOT_PATH.replace(/\/$/, "");
+
+
+        const actual =
+            (
+                currentPath ||
+                ROOT_PATH
+            ).replace(/\/$/, "");
+
+
+        // Ya estamos en raíz
+        if (
+            actual === root
+        ) {
+
+            console.log(
+                "FICHA: ya estamos en la raíz"
+            );
+
+            return;
+
+        }
+
+
+        const posicion =
+            actual.lastIndexOf("/");
+
+
+        if (posicion <= root.length) {
+
+            setBasePath(
+                ROOT_PATH
+            );
+
+            return;
+
+        }
+
+
+        const padre =
+            actual.substring(
+                0,
+                posicion
+            );
+
 
         console.log(
-            "FICHA ACCION:",
-            data.id
+            "FICHA: SUBIENDO A:",
+            padre
         );
 
 
-        // =================================================
-        // VOLVER
-        // =================================================
+        setBasePath(
+            padre
+        );
 
-        if (
-            data.id === ChonkyActions.GoBack.id
-        ) {
-
-            goBack();
-
-            return;
-        }
+    }
 
 
-        // =================================================
-        // SUBIR NIVEL
-        // =================================================
+    // =================================================
+    // ABRIR ARCHIVO
+    // =================================================
 
-        if (
-            data.id === ChonkyActions.GoUp.id
-        ) {
-
-            goUp();
-
-            return;
-        }
-
-
-        // =================================================
-        // ABRIR ARCHIVO / CARPETA
-        // =================================================
-
-        if (
-            data.id !== ChonkyActions.OpenFiles.id
-        ) {
-
-            return;
-        }
-
-
-        const file =
-            data.payload?.files?.[0];
-
+    function openFile(file) {
 
         if (!file) {
 
@@ -119,62 +345,22 @@ export default function FichaTecnica() {
         }
 
 
-        console.log(
-            "FICHA ABIERTO:",
-            file
-        );
-
-
-        // =================================================
-        // CARPETA
-        // =================================================
-
-        if (file.isDir) {
-
-            const ruta =
-                file.extraData?.ruta;
-
-            if (!ruta) {
-
-                console.error(
-                    "La carpeta no tiene ruta:",
-                    file
-                );
-
-                return;
-            }
-
-
-            console.log(
-                "ENTRANDO A:",
-                ruta
-            );
-
-
-            setBasePath(ruta);
-
-            return;
-        }
-
-
-        // =================================================
-        // ARCHIVO
-        // =================================================
-
-        const ruta =
-            file.extraData?.ruta;
-
         const extension =
             (
                 file.extraData?.extension ||
-                file.name.split(".").pop() ||
+                file.name
+                    ?.split(".")
+                    .pop() ||
                 ""
             ).toLowerCase();
 
 
         console.log(
-            "ARCHIVO:",
-            file.name
+            "================================="
+        );
+
+        console.log(
+            "FICHA: ABRIENDO ARCHIVO"
         );
 
         console.log(
@@ -183,8 +369,8 @@ export default function FichaTecnica() {
         );
 
         console.log(
-            "RUTA:",
-            ruta
+            "NOMBRE:",
+            file.name
         );
 
         console.log(
@@ -197,7 +383,9 @@ export default function FichaTecnica() {
         // PDF
         // =================================================
 
-        if (extension === "pdf") {
+        if (
+            extension === "pdf"
+        ) {
 
             window.open(
                 `/fichatecnica/ver/${file.id}`,
@@ -205,6 +393,7 @@ export default function FichaTecnica() {
             );
 
             return;
+
         }
 
 
@@ -213,122 +402,137 @@ export default function FichaTecnica() {
         // =================================================
 
         if (
+            extension === "xls" ||
             extension === "xlsx" ||
-            extension === "xls"
+            extension === "xlsm" ||
+            extension === "csv"
         ) {
 
-            if (!ruta) {
+           window.open(
+            `/fichatecnica/excel/${file.id}`,
+            "_blank"
+        );
+                    return;
 
-                console.error(
-                    "No existe ruta para Excel"
-                );
-
-                return;
-            }
-
-
-            window.open(
-                `/excel/ver/${encodeURIComponent(ruta)}`,
-                "_blank"
-            );
-
-            return;
         }
 
 
         // =================================================
-        // OTROS ARCHIVOS
+        // OTROS
         // =================================================
 
         console.log(
-            "Tipo de archivo no soportado:",
+            "FICHA: archivo no compatible con visor:",
             extension
         );
 
     }
 
 
-    // =====================================================
-    // VOLVER AL PADRE
-    // =====================================================
+    // =================================================
+    // ACCIONES CHONKY
+    // =================================================
 
-    function goBack() {
-
-        const root =
-            "/mnt/nas_pcmercadeo/";
-
-
-        if (
-            !basePath ||
-            basePath === root ||
-            basePath === "/mnt/nas_pcmercadeo"
-        ) {
-
-            console.log(
-                "Ya estamos en la raíz"
-            );
-
-            return;
-        }
-
-
-        const limpio =
-            basePath.replace(/\/$/, "");
-
-
-        const posicion =
-            limpio.lastIndexOf("/");
-
-
-        if (posicion <= 0) {
-
-            setBasePath(root);
-
-            return;
-        }
-
-
-        const padre =
-            limpio.substring(
-                0,
-                posicion
-            );
-
+    function handleAction(data) {
 
         console.log(
-            "VOLVIENDO A:",
-            padre
+            "================================="
+        );
+
+        console.log(
+            "FICHA ACCIÓN CHONKY:",
+            data.id
         );
 
 
-        setBasePath(
-            padre || root
-        );
+        // =================================================
+        // ABRIR ARCHIVO / CARPETA
+        // =================================================
+
+        if (
+            data.id ===
+            ChonkyActions.OpenFiles.id
+        ) {
+
+            const selectedFile =
+                data.payload?.files?.[0];
+
+
+            if (!selectedFile) {
+
+                console.log(
+                    "FICHA: no hay archivo seleccionado"
+                );
+
+                return;
+
+            }
+
+
+            console.log(
+                "FICHA SELECCIONADO:",
+                selectedFile
+            );
+
+
+            // ---------------------------------------------
+            // CARPETA
+            // ---------------------------------------------
+
+            if (
+                selectedFile.isDir
+            ) {
+
+                openFolder(
+                    selectedFile
+                );
+
+                return;
+
+            }
+
+
+            // ---------------------------------------------
+            // ARCHIVO
+            // ---------------------------------------------
+
+            openFile(
+                selectedFile
+            );
+
+            return;
+
+        }
+
+
+        // =================================================
+        // SUBIR NIVEL
+        // =================================================
+
+        if (
+            data.id ===
+            ChonkyActions.OpenParentFolder.id
+        ) {
+
+            goUp();
+
+            return;
+
+        }
 
     }
 
 
-    // =====================================================
-    // SUBIR NIVEL
-    // =====================================================
-
-    function goUp() {
-
-        goBack();
-
-    }
-
-
-    // =====================================================
+    // =================================================
     // RENDER
-    // =====================================================
+    // =================================================
 
     return (
 
         <div
             style={{
                 height: "600px",
-                width: "100%"
+                width: "100%",
             }}
         >
 
@@ -336,7 +540,11 @@ export default function FichaTecnica() {
 
                 files={files}
 
+                folderChain={folderChain}
+
                 onFileAction={handleAction}
+
+                disableDragAndDrop={true}
 
             />
 

@@ -1,6 +1,6 @@
 const menu = [
   {
-    path: "/admin/dashboard",
+    path: "/",
     icon: "nav-icon fas fa-tachometer-alt",
     title: "Dashboard"
   },
@@ -10,27 +10,27 @@ const menu = [
     title: "Data Master",
     children: [
       {
-        path: "/admin/about",
-        title: "Data Users"
+        path: "/explorer",
+        title: "Gestion De Calidad "
       },
       {
-        path: "/category",
-        title: "Menu 2"
+        path: "/fichatecnica",
+        title: "Ficha  Tecnica"
       }
     ]
   },
   {
     path: "/",
     icon: "nav-icon fas fa-database",
-    title: "Menu Level",
+    title: "INFORMACION",
     children: [
       {
         path: "/",
-        title: "Level 1"
+        title: "Directorio"
       },
       {
         path: "",
-        title: "Level 2",
+        title: "Avisos",
         icon: "nav-icon fas far fa-circle nav-icon",
         children: [
           {

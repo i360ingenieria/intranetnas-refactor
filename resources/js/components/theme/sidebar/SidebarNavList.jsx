@@ -1,95 +1,158 @@
 import { memo, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 const SidebarNavList = ({ data, submenu }) => {
-  const icon = data?.icon && <i className={data.icon} />;
-  const titlesub = data?.title && (
-    <p>
-      {data.title} <i className="nav-arrow fas fa-angle-right" />
-    </p>
-  );
-  const title = data?.title && <p>{data.title}</p>;
+    const [isMenuExtended, setIsMenuExtended] = useState(false);
 
-  const [isMenuExtended, setIsMenuExtended] = useState(false);
-  const mainMenuRef = useRef(null);
-  const submenuRef = useRef(null);
+    const menuRef = useRef(null);
 
-  const handleMainMenuAction = (event) => {
-    event.preventDefault();
-    setIsMenuExtended((prev) => !prev);
-  };
+    const hasChildren =
+        Array.isArray(data?.children) && data.children.length > 0;
 
-  useEffect(() => {
-    const menuElement =
-      submenu === "active" ? submenuRef.current : mainMenuRef.current;
+    const isSubmenu = submenu === "active";
 
-    if (!menuElement) return;
+    const icon = data?.icon ? (
+        <i className={data.icon}></i>
+    ) : null;
 
-    if (isMenuExtended) {
-      menuElement.classList.add("show");
-      menuElement.style.display = "block";
-      menuElement.style.maxHeight = menuElement.scrollHeight + "px";
-      menuElement.style.opacity = "1";
-      menuElement.style.overflow = "auto";
-      setTimeout(() => {
-        menuElement.style.maxHeight = "none";
-      }, 300);
-    } else {
-      menuElement.style.maxHeight = menuElement.scrollHeight + "px";
-      menuElement.style.overflow = "hidden";
+    const handleToggle = (event) => {
+        event.preventDefault();
 
-      requestAnimationFrame(() => {
-        menuElement.style.maxHeight = "0px";
-        menuElement.style.opacity = "0";
-      });
+        setIsMenuExtended((prev) => !prev);
+    };
 
-      setTimeout(() => {
-        menuElement.classList.remove("show");
-        menuElement.style.display = "none";
-      }, 300);
+    useEffect(() => {
+        const menuElement = menuRef.current;
+
+        if (!menuElement) {
+            return;
+        }
+
+        if (isMenuExtended) {
+            menuElement.classList.add("show");
+
+            menuElement.style.display = "block";
+            menuElement.style.maxHeight =
+                menuElement.scrollHeight + "px";
+            menuElement.style.opacity = "1";
+            menuElement.style.overflow = "hidden";
+
+            const timer = setTimeout(() => {
+                menuElement.style.maxHeight = "none";
+            }, 300);
+
+            return () => clearTimeout(timer);
+        }
+
+        menuElement.style.maxHeight =
+            menuElement.scrollHeight + "px";
+
+        menuElement.style.opacity = "1";
+        menuElement.style.overflow = "hidden";
+
+        requestAnimationFrame(() => {
+            menuElement.style.maxHeight = "0px";
+            menuElement.style.opacity = "0";
+        });
+
+        const timer = setTimeout(() => {
+            menuElement.classList.remove("show");
+            menuElement.style.display = "none";
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [isMenuExtended]);
+
+    // =====================================================
+    // NAV HEADER
+    // =====================================================
+
+    if (data?.navheader) {
+        return (
+            <li className="nav-header">
+                {data.title}
+            </li>
+        );
     }
-  }, [isMenuExtended, submenu]);
 
-  return (
-    <>
-      {data?.navheader && <li className="nav-header">{data.title}</li>}
+    // =====================================================
+    // ITEM CON HIJOS
+    // =====================================================
 
-      <li className={`nav-item${isMenuExtended ? " menu-open" : ""}`}>
-        {data?.children ? (
-          <Link
-            href={data?.path}
-            className="nav-link"
-            onClick={handleMainMenuAction}
-            style={{ cursor: "pointer" }}
-          >
-            {icon} {titlesub}
-          </Link>
-        ) : data?.navheader !== true ? (
-          <Link
-            href={data?.path || ""}
-            className="nav-link"
-            style={{ cursor: "pointer" }}
-          >
-            {submenu === "active" ? (
-              <i className="far fa-circle nav-icon" />
-            ) : null}
-            {icon} {title}
-          </Link>
-        ) : null}
+    if (hasChildren) {
+        return (
+            <li
+                className={`nav-item ${
+                    isMenuExtended ? "menu-open" : ""
+                }`}
+            >
+                <a
+                    href="#"
+                    className="nav-link"
+                    onClick={handleToggle}
+                    style={{ cursor: "pointer" }}
+                >
+                    {icon}
 
-        {data?.children && (
-          <ul
-            ref={submenu === "active" ? submenuRef : mainMenuRef}
-            className="nav nav-treeview"
-          >
-            {data.children.map((submenu, i) => (
-              <SidebarNavList data={submenu} key={i} submenu="active" />
-            ))}
-          </ul>
-        )}
-      </li>
-    </>
-  );
+                    <p>
+                        {data.title}
+
+                        <i
+                            className={`nav-arrow fas ${
+                                isMenuExtended
+                                    ? "fa-angle-down"
+                                    : "fa-angle-right"
+                            }`}
+                        ></i>
+                    </p>
+                </a>
+
+                <ul
+                    ref={menuRef}
+                    className="nav nav-treeview"
+                    style={{
+                        display: "none",
+                        maxHeight: "0px",
+                        opacity: 0,
+                        overflow: "hidden",
+                        transition:
+                            "max-height 0.3s ease, opacity 0.3s ease",
+                    }}
+                >
+                    {data.children.map((child, index) => (
+                        <SidebarNavList
+                            data={child}
+                            key={`${child.title}-${index}`}
+                            submenu="active"
+                        />
+                    ))}
+                </ul>
+            </li>
+        );
+    }
+
+    // =====================================================
+    // ITEM NORMAL / HOJA
+    // =====================================================
+
+    return (
+        <li className="nav-item">
+            <NavLink
+                to={data?.path || "/"}
+                className={({ isActive }) =>
+                    `nav-link ${isActive ? "active" : ""}`
+                }
+            >
+                {isSubmenu && (
+                    <i className="far fa-circle nav-icon"></i>
+                )}
+
+                {icon}
+
+                <p>{data?.title}</p>
+            </NavLink>
+        </li>
+    );
 };
 
 export default memo(SidebarNavList);

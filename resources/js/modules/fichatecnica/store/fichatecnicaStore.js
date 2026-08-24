@@ -1,16 +1,32 @@
 import { create } from "zustand";
 
-export const useFichaTecnicaStore = create((set) => ({
-    basePath: "/mnt/nas_pcmercadeo/",
-    files: [],
 
-    setFiles: (files) =>
-        set({
-            files,
-        }),
+const ROOT_PATH =
+    "/mnt/nas_pcmercadeo/";
 
-    setBasePath: (basePath) =>
-        set({
-            basePath,
-        }),
-}));
+
+export const useFichaTecnicaStore = create(
+    (set) => ({
+
+        basePath: ROOT_PATH,
+
+        files: [],
+
+
+        setBasePath: (basePath) =>
+            set({
+                basePath:
+                    basePath || ROOT_PATH,
+            }),
+
+
+        setFiles: (files) =>
+            set({
+                files:
+                    Array.isArray(files)
+                        ? files
+                        : [],
+            }),
+
+    })
+);

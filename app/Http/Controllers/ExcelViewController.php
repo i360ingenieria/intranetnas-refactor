@@ -14,68 +14,103 @@ class ExcelViewController extends Controller
     private int $maxRowsToLoad = 5000;
 
     /**
-     * Visualizar archivo Excel.
+     * Visualizar archivo Excel como JSON para React.
      *
-     * URL:
-     * /fichatecnica/excel/ver/{id}
+     * GET /excel/ver/{id}
      */
-    public function ver($id)
-    {
+    public function ver(Request $request)
+{
+        $id = $request->query('id');
+
+    if (!$id) {
+        return response()->json([
+            'message' => 'Debe proporcionar el ID del archivo.',
+        ], 400);
+    }
+
         // =====================================================
-        // 1. BUSCAR ARCHIVO EN LA BASE DE DATOS
+        // 1. BUSCAR ARCHIVO
         // =====================================================
 
         $archivo = FichaTec::findOrFail($id);
 
         // =====================================================
-        // 2. VALIDAR QUE SEA UN ARCHIVO
+        // 2. VALIDAR TIPO
         // =====================================================
 
         if ($archivo->tipo !== 'archivo') {
-            abort(404, 'El registro no corresponde a un archivo.');
+
+            return response()->json([
+                'message' =>
+                    'El registro no corresponde a un archivo.',
+            ], 404);
         }
 
         // =====================================================
         // 3. VALIDAR EXTENSIÓN
         // =====================================================
 
-        $extension = strtolower($archivo->extension);
-
-        if (!in_array($extension, ['xls', 'xlsx', 'xlsm', 'csv'])) {
-            abort(
-                403,
-                'El archivo no es compatible con el visor de Excel.'
+        $extension =
+            strtolower(
+                $archivo->extension
             );
+
+        if (
+            !in_array(
+                $extension,
+                [
+                    'xls',
+                    'xlsx',
+                    'xlsm',
+                    'csv',
+                ],
+                true
+            )
+        ) {
+
+            return response()->json([
+                'message' =>
+                    'El archivo no es compatible con el visor de Excel.',
+            ], 403);
         }
 
         // =====================================================
-        // 4. OBTENER RUTA REAL DEL NAS
+        // 4. RUTA REAL
         // =====================================================
 
-        $rutaArchivo = $archivo->ruta;
+        $rutaArchivo =
+            $archivo->ruta;
 
-        if (!is_file($rutaArchivo)) {
-            abort(
-                404,
-                'El archivo no existe físicamente en el NAS.'
-            );
+        if (
+            !is_file($rutaArchivo)
+        ) {
+
+            return response()->json([
+                'message' =>
+                    'El archivo no existe físicamente en el NAS.',
+            ], 404);
         }
 
         // =====================================================
-        // 5. INFORMACIÓN DEL ARCHIVO
+        // 5. TAMAÑO
         // =====================================================
 
-        $fileSize = filesize($rutaArchivo);
+        $fileSize =
+            filesize($rutaArchivo);
 
-        $isLargeFile = $fileSize > (5 * 1024 * 1024);
+        $isLargeFile =
+            $fileSize > (5 * 1024 * 1024);
 
         // =====================================================
-        // 6. CONFIGURACIÓN PARA ARCHIVOS GRANDES
+        // 6. ARCHIVOS GRANDES
         // =====================================================
 
         if ($isLargeFile) {
 
-            ini_set('memory_limit', '1024M');
+            ini_set(
+                'memory_limit',
+                '1024M'
+            );
 
             set_time_limit(300);
         }
@@ -86,22 +121,29 @@ class ExcelViewController extends Controller
 
         try {
 
-            $spreadsheet = IOFactory::load($rutaArchivo);
+            $spreadsheet =
+                IOFactory::load(
+                    $rutaArchivo
+                );
 
         } catch (\Throwable $e) {
 
-            return response()->view(
-                'visor',
-                [
-                    'filename' => $archivo->nombre,
-                    'sheets' => [],
-                    'totalSheets' => 0,
-                    'isLargeFile' => $isLargeFile,
-                    'error' => 'No fue posible abrir el archivo Excel: '
-                        . $e->getMessage(),
-                ],
-                500
-            );
+            return response()->json([
+                'filename' =>
+                    $archivo->nombre,
+
+                'sheets' => [],
+
+                'totalSheets' => 0,
+
+                'isLargeFile' =>
+                    $isLargeFile,
+
+                'error' =>
+                    'No fue posible abrir el archivo Excel: '
+                    . $e->getMessage(),
+
+            ], 500);
         }
 
         // =====================================================
@@ -110,100 +152,121 @@ class ExcelViewController extends Controller
 
         $sheets = [];
 
-        foreach ($spreadsheet->getAllSheets() as $sheet) {
+        foreach (
+            $spreadsheet->getAllSheets()
+            as $sheet
+        ) {
 
-            $allData = $sheet->toArray();
+            $allData =
+                $sheet->toArray();
 
             // -------------------------------------------------
-            // Encabezados
+            // ENCABEZADOS
             // -------------------------------------------------
 
             $headers = [];
 
-            if (!empty($allData)) {
-                $headers = array_shift($allData);
+            if (
+                !empty($allData)
+            ) {
+
+                $headers =
+                    array_shift(
+                        $allData
+                    );
             }
 
             // -------------------------------------------------
-            // Total de filas
+            // TOTAL
             // -------------------------------------------------
 
-            $totalRows = count($allData);
+            $totalRows =
+                count($allData);
 
             // -------------------------------------------------
-            // Determinar si se limita
+            // LIMITAR
             // -------------------------------------------------
 
-            $hasWarning = false;
+            $hasWarning =
+                false;
 
             if (
                 $isLargeFile ||
-                $totalRows > $this->maxRowsToLoad
+                $totalRows >
+                    $this->maxRowsToLoad
             ) {
 
-                $hasWarning = true;
+                $hasWarning =
+                    true;
 
-                $dataToShow = array_slice(
-                    $allData,
-                    0,
-                    $this->maxRowsToLoad
-                );
+                $dataToShow =
+                    array_slice(
+                        $allData,
+                        0,
+                        $this->maxRowsToLoad
+                    );
 
             } else {
 
-                $dataToShow = $allData;
+                $dataToShow =
+                    $allData;
             }
 
             // -------------------------------------------------
-            // Guardar información de la hoja
+            // HOJA
             // -------------------------------------------------
 
             $sheets[] = [
 
-                'name' => $sheet->getTitle(),
+                'name' =>
+                    $sheet->getTitle(),
 
-                'headers' => $headers,
+                'headers' =>
+                    $headers,
 
-                'rows' => $dataToShow,
+                'rows' =>
+                    $dataToShow,
 
-                'totalRows' => $totalRows,
+                'totalRows' =>
+                    $totalRows,
 
-                'warning' => $hasWarning,
+                'warning' =>
+                    $hasWarning,
 
             ];
         }
 
         // =====================================================
-        // 9. LIBERAR SPREADSHEET
+        // 9. LIBERAR MEMORIA
         // =====================================================
 
-        $spreadsheet->disconnectWorksheets();
+        $spreadsheet
+            ->disconnectWorksheets();
 
-        unset($spreadsheet);
-
-        // =====================================================
-        // 10. NOMBRE DEL ARCHIVO
-        // =====================================================
-
-        $filename = $archivo->nombre;
+        unset(
+            $spreadsheet
+        );
 
         // =====================================================
-        // 11. ENVIAR AL VISOR
+        // 10. JSON
         // =====================================================
 
-        return view('visor', [
+        return response()->json([
 
-            'filename' => $filename,
+            'filename' =>
+                $archivo->nombre,
 
-            'sheets' => $sheets,
+            'sheets' =>
+                $sheets,
 
-            'totalSheets' => count($sheets),
+            'totalSheets' =>
+                count($sheets),
 
-            'isLargeFile' => $isLargeFile,
+            'isLargeFile' =>
+                $isLargeFile,
 
-            'fileId' => $archivo->id,
-
-            'ruta' => $archivo->ruta,
+            'fileId' =>
+                $archivo->id,
 
         ]);
     }
