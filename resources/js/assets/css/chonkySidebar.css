@@ -1,0 +1,35 @@
+/* 1. Estandarizar el tamaño del contenedor del ícono y centrarlo */
+.chonky-file-icon {
+    width: 70px !important;  /* Ajusta este valor si los quieres más grandes o pequeños */
+    height: 70px !important;
+    margin: 0 auto 10px auto !important; /* Centra el ícono y da espacio antes del texto */
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    flex-shrink: 0 !important; /* Evita que el contenedor se encoja */
+}
+
+/* 2. Prevenir que el SVG (el dibujo de la carpeta/archivo) pierda su proporción */
+.chonky-file-icon svg {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important; /* Mantiene la relación de aspecto intacta */
+}
+
+/* 3. Asegurar que las "tarjetas" de la grilla tengan el mismo ancho sin importar el nombre */
+div[class*="fileEntryGrid"] {
+    width: 150px !important; /* Mantiene el ancho total del ítem uniforme */
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+}
+
+/* 4. Opcional: Controlar cómo se corta el texto si es muy largo */
+div[class*="fileEntryName"] {
+    max-width: 100% !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    text-align: center !important;
+    font-size: 13px !important; /* Ajustar tamaño de fuente si es necesario */
+}
