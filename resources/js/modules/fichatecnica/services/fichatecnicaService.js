@@ -39,3 +39,17 @@ export async function getFichaTecnica(basePath) {
     return result.data || [];
 
 }
+
+  export async function buscarGlobalf(q) {
+        const response = await fetch(
+            `/api/buscador-global?q=${encodeURIComponent(q)}`
+        );
+
+        if (!response.ok) {
+            throw new Error("Error en la búsqueda global");
+        }
+
+        const json = await response.json();
+
+        return json.data || [];
+    }

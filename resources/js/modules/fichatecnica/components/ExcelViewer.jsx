@@ -67,6 +67,15 @@ export default function ExcelViewer({ fileId, onClose }) {
         };
     }, [fileId]);
 
+
+     const descargarArchivo = () => {
+        if (!fileId) {
+            console.error("No existe fileId para descargar");
+            return;
+        }
+
+        window.open(`/fichatecnica/descargar/${fileId}`, "_blank");
+    };
     // =====================================================
     // HOJA ACTUAL
     // =====================================================
@@ -79,7 +88,7 @@ export default function ExcelViewer({ fileId, onClose }) {
 
     const rows =
         sheet?.rows || [];
-
+ 
     // =====================================================
     // FILTRAR
     // =====================================================
@@ -148,7 +157,7 @@ export default function ExcelViewer({ fileId, onClose }) {
 
                         {error}
                     </div>
-
+                  
                     <button
                         type="button"
                         className="btn btn-secondary"
@@ -185,7 +194,7 @@ export default function ExcelViewer({ fileId, onClose }) {
                         onClick={onClose}
                     >
                         <i className="fas fa-arrow-left mr-2" />
-                        Volver
+                        Volver****
                     </button>
                 </div>
             </div>
@@ -216,7 +225,15 @@ export default function ExcelViewer({ fileId, onClose }) {
                             {workbook.filename}
 
                         </h3>
+                        <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={descargarArchivo}
+                        >
+                            <i className="fas fa-solid fa-download mr-1" />
 
+                            descargar 
+                        </button>
                         <button
                             type="button"
                             className="btn btn-secondary btn-sm"
@@ -224,7 +241,7 @@ export default function ExcelViewer({ fileId, onClose }) {
                         >
                             <i className="fas fa-arrow-left mr-1" />
 
-                            Volver
+                            Volver----
                         </button>
 
                     </div>

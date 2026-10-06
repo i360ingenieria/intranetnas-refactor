@@ -7,7 +7,7 @@ const menu = [
   {
     path: "/",
     icon: "nav-icon fas fa-database",
-    title: "Data Master",
+    title: "Docuemntos Nas",
     children: [
       {
         path: "/explorer",

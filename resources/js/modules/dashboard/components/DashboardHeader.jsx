@@ -2,12 +2,12 @@ export default function DashboardHeader() {
 
     const hour = new Date().getHours();
 
-    let saludo = "Buenas noches";
+    let saludo = "*****";
 
     if (hour < 12) {
-        saludo = "Buenos días";
+        saludo = "******";
     } else if (hour < 18) {
-        saludo = "Buenas tardes";
+        saludo = " ******";
     }
 
     const fecha = new Date().toLocaleDateString("es-CO", {

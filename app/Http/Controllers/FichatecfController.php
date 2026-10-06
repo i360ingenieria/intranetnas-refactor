@@ -116,14 +116,15 @@ public function buscar(Request $request)
 
  public function descargar($id)
 {
+    
     $archivo = FichaTec::where('id', $id)
         ->where('tipo', 'archivo')
         ->firstOrFail();
 
     // Solo permitir PDF
-    if (strtolower($archivo->extension) !== 'pdf') {
-        abort(403, 'La descarga de este tipo de archivo está bloqueada.');
-    }
+    // if (strtolower($archivo->extension) !== 'pdf') {
+    //     abort(403, 'La descarga de este tipo de archivo está bloqueada.');
+    // }
 
     abort_unless(is_file($archivo->ruta), 404);
 
@@ -183,5 +184,48 @@ public function buscar(Request $request)
                 'Content-Disposition' => 'inline; filename="'.$archivo->nombre.'"'
             ]
         );
+    }
+
+    
+    public function buscarGlobalf(Request $request)
+    {
+        $q = trim($request->q ?? '');
+
+        if ($q === '') {
+            return response()->json([
+                'data' => [],
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0
+            ]);
+        }
+
+        $resultados = FichaTec::where('nombre', 'NOT LIKE', '~$%')
+            ->where('nombre', 'like', "%{$q}%")
+            ->orderByRaw("tipo = 'carpeta' DESC")
+            ->orderBy('nombre')
+            ->limit(500)
+            ->get();
+
+        $archivosFormateados = $resultados->map(function ($archivo) {
+
+            return [
+                'id'            => $archivo->id,
+                'nombre'        => trim($archivo->nombre),
+                'ruta'          => $archivo->ruta,
+                'ubicacion'     => dirname($archivo->ruta),
+                'tipo'          => $archivo->tipo,
+                'extension'     => $archivo->extension ?? '',
+                'modified'      => $archivo->modified,
+                'size'          => $archivo->size ?? 0,
+                'ruta_relativa' => ltrim($archivo->ruta, '/')
+            ];
+
+        })->values();
+
+        return response()->json([
+            'data' => $archivosFormateados,
+            'recordsTotal' => $archivosFormateados->count(),
+            'recordsFiltered' => $archivosFormateados->count()
+        ]);
     }
 }

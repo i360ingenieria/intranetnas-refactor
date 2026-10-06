@@ -12,14 +12,14 @@ export default function ExcelViewerPage() {
 
     function handleClose() {
 
-        navigate(-1);
+        navigate("/fichatecnica");
 
     }
 
 
     return (
 
-        <ExcelViewer
+   <ExcelViewer
             fileId={id}
             onClose={handleClose}
         />

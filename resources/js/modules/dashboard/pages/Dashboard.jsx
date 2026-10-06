@@ -6,8 +6,7 @@ export default function Dashboard() {
     return (
         <div className="container-fluid">
             <DashboardHeader />
-            <DashboardStats />
-            <QuickAccess />
+             <QuickAccess />
         </div>
     );
 }
