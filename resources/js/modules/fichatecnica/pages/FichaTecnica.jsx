@@ -273,6 +273,62 @@ export default function FichaTecnica() {
         setResultadosGlobalesF([]);
     }
 
+
+     function abrirResultado(resultado) {
+
+        console.log(
+            "===== RESULTADO GLOBAL ====="
+        );
+
+        console.log(
+            "RESULTADO:",
+            resultado
+        );
+
+        // ------------------------------------------------
+        // CARPETA
+        // ------------------------------------------------
+
+        if (
+            resultado.tipo === "carpeta" ||
+            resultado.tipo === "folder" ||
+            resultado.tipo === "directory"
+        ) {
+
+            const ruta =
+                resultado.ruta;
+
+            if (!ruta) {
+
+                console.error(
+                    "La carpeta no tiene ruta:",
+                    resultado
+                );
+
+                return;
+            }
+
+            console.log(
+                "NAVEGANDO A CARPETA:",
+                ruta
+            );
+
+            setBasePath(ruta);
+
+            return;
+        }
+
+        // ------------------------------------------------
+        // ARCHIVO
+        // ------------------------------------------------
+
+        const file = {
+            id: resultado.id,
+            name: resultado.nombre,
+        };
+
+        abrirArchivo(file);
+    }
     
     // =================================================
     // FOLDER CHAIN
@@ -287,6 +343,63 @@ export default function FichaTecnica() {
     }, [
         currentPath,
     ]);
+    function abrirArchivo(file) {
+
+        const extension =
+            file.name
+                ?.split(".")
+                .pop()
+                ?.toLowerCase();
+
+        console.log(
+            "ABRIENDO ARCHIVO:",
+            file.name
+        );
+
+        console.log(
+            "ID:",
+            file.id
+        );
+
+        console.log(
+            "EXTENSION:",
+            extension
+        );
+
+        // PDF
+        if (extension === "pdf") {
+
+            window.open(
+                `/archivos/ver/${file.id}`,
+                "_blank"
+            );
+
+            return;
+        }
+
+        // Excel
+        if (
+            extension === "xls" ||
+            extension === "xlsx" ||
+            //aca va la logica para descargar el xlsm, y .docx que no se puede abrir en el navegador
+            extension === "xlsm"
+        ) {
+
+            window.open(
+                `/fichatecnica/excel/${file.id}`,
+                "_self"
+            );
+
+
+            return;
+        }
+
+        // Otros archivos
+        window.open(
+            `/archivos/descargar/${file.id}`,
+            "_blank"
+        );
+    }
 
 
     // =================================================

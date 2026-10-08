@@ -19,14 +19,15 @@ class ExcelViewController extends Controller
      * GET /excel/ver/{id}
      */
     public function ver(Request $request)
-{
+    {
+        //dd('ExcelViewController::ver() - Request:', $request->all());
         $id = $request->query('id');
 
-    if (!$id) {
-        return response()->json([
-            'message' => 'Debe proporcionar el ID del archivo.',
-        ], 400);
-    }
+        if (!$id) {
+            return response()->json([
+                'message' => 'Debe proporcionar el ID del archivo.',
+            ], 400);
+        }
 
         // =====================================================
         // 1. BUSCAR ARCHIVO

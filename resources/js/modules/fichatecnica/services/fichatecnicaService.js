@@ -42,7 +42,7 @@ export async function getFichaTecnica(basePath) {
 
   export async function buscarGlobalf(q) {
         const response = await fetch(
-            `/api/buscador-global?q=${encodeURIComponent(q)}`
+            `/api/buscador-globalf?q=${encodeURIComponent(q)}`
         );
 
         if (!response.ok) {

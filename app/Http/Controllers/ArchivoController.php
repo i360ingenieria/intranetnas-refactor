@@ -162,7 +162,7 @@ class ArchivoController extends Controller
     
     public function ver($id)
     {
-        $archivo = Archivo::findOrFail($id);
+         $archivo = Archivo::findOrFail($id);
          // 🔐 Solo PDFs
         if (strtolower($archivo->extension) !== 'pdf') {
             abort(403, 'No es un PDF');
