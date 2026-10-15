@@ -139,12 +139,8 @@ export default function FichaTecnica() {
     useEffect(() => {
        
         let cancelled = false;
-
-          
         async function loadFiles() {
-
             try {
-
                 console.log(
                     "=================loadfiles================"
                 );
@@ -158,21 +154,16 @@ export default function FichaTecnica() {
                     currentPath
                 );
 
-
                 const data =
                     await getFichaTecnica(currentPath);
-
 
                 console.log(
                     "FICHA API:",
                     data
                 );
 
-
                 const chonkyFiles =
                     toChonkyFiles(data);
-
-
                 console.log(
                     "FICHA CHONKY:",
                     chonkyFiles
@@ -194,9 +185,7 @@ export default function FichaTecnica() {
                     error
                 );
 
-
                 if (!cancelled) {
-
                     setFiles([]);
 
                 }

@@ -326,7 +326,7 @@ export default function Explorer() {
         ) {
 
             window.open(
-                `/archivos/excel  /${file.id}`,
+            `/archivos/descargar/${file.id}`,
                 "_blank"
             );
 
@@ -347,7 +347,7 @@ export default function Explorer() {
     function handleAction(data) {
 
         console.log(
-            "===== ACCIÓN CHONKY ====="
+            "=====handle  ACCIÓN CHONKY ====="
         );
 
         console.log(
@@ -804,8 +804,8 @@ export default function Explorer() {
                     files={files}
                     folderChain={folderChain}
                     onFileAction={handleAction}
-
-                    /*
+                    
+                                        /*
                      * No necesitamos arrastrar archivos.
                      * Esto evita el error:
                      *
